@@ -7,6 +7,19 @@ let lastFetchTime = 0;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 mins cache
 
 export async function GET(request: Request) {
+  
+  // ==========================================
+  // 🛑 THE IRON LOCK (RAPIDAPI SECURITY) 🛑
+  // ==========================================
+  const rapidProxySecret = request.headers.get('X-RapidAPI-Proxy-Secret');
+  const mySecret = process.env.RAPIDAPI_SECRET;
+
+  // If we have set a secret in Vercel, the request MUST include it!
+  if (mySecret && rapidProxySecret !== mySecret) {
+    return NextResponse.json({ error: 'Unauthorized. Invalid or missing RapidAPI secret.' }, { status: 403 });
+  }
+  // ==========================================
+
   // Return Cache
   if (cachedData.length > 0 && (Date.now() - lastFetchTime < CACHE_DURATION)) {
     return NextResponse.json({ status: 'success', source: 'cache', count: cachedData.length, data: cachedData });
